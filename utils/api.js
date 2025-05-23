@@ -285,3 +285,39 @@ export const addHoliday = async (
     console.error('Error adding holiday:', err);
   }
 };
+
+
+
+
+
+
+
+
+export const fetchWeeklySalesCSV = async () => {
+  try {
+    const response = await axios.get(`${API_BASE_URL}/download-weekly-sales`, {
+      responseType: 'blob',
+    });
+
+    const text = await response.data.text(); // Convert blob to plain text
+
+    const lines = text.trim().split('\n');
+    const headers = lines[0].split(',');
+
+    const data = lines.slice(1).map(line => {
+      const values = line.split(',');
+      const entry = {};
+      headers.forEach((header, index) => {
+        entry[header.trim()] = isNaN(values[index])
+          ? values[index].trim()
+          : parseFloat(values[index]);
+      });
+      return entry;
+    });
+
+    return data; // [{ week: "Week 1", sales: 300 }, ...]
+  } catch (err) {
+    console.error('Error fetching or parsing CSV:', err);
+    throw new Error('Failed to fetch sales data');
+  }
+};
